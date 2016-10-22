@@ -5,58 +5,133 @@ var io = require('socket.io')(http);
 var mocha = require('mocha');
 var chai = require('chai');
 var expect = chai.expect;
+var assert = require('assert');
 
-describe('Basic tests cases - Game of life', function(){
-    describe('Count neighbours', function(){
-      it('Count neighbours should return 1', function(done){
-        var mat = [[0,0,0],[0,1,0],[0,0,1]];
-        expect(CountNeighbours(mat,1,1)).equals(1);
-        done();
-      })
-      it('Count neighbours should return 2', function(done){
-        var mat = [[1,1,0],[0,1,0],[0,0,0]];
-        expect(CountNeighbours(mat,1,1)).equals(2);
-        done();
-      })
-      it('Count neighbours should return 1', function(done){
-        var mat = [[1,0,0],[0,1,1],[0,0,0]];
-        expect(CountNeighbours(mat,2,1)).equals(1);
-        done();
-      })
-    })
+var computeNb = function(a,x,y, count= 0) {
+  for (var i = x-1; i < x+1; i++)
+    for (var j = y-1; j < y+1; j++)
+      if (i>=0 && i<=2 && j>=0 && j<=2 && (i != x && j != y))
+        count+= a[i][j];
+  return count;
 }
-);
 
-let CountNeighbours =  function(mat,x,y) {
-  var count = 0;
-  for (var i = 0; i < mat.length; i++) {
-    //mat[i]
-    console.log(i + ' ' + mat[i]);
-    for (var j = 0; j < mat[i].length; j++) {
-      if (i === x-1  && j === y-1) {
-          count ++;
-      }
-      if (i === x-1  && j === y) {
-        count ++;
-      }
-      if (i === x-1  && j === y+1) {
-        count ++;
-      }
+var isAlive = function(a, x, y) {
+  return a[x][y] == true;
+}
 
-      if (i === x  && j === y-1) {
-          count ++;
-      }
-      if (i === x  && j === y) {
-        count ++;
-      }
-      if (i === x  && j === y+1) {
-        count ++;
-      }
+var underPopulationBehavior = function() {
+  nextGrid[x][y] = false;
+}
 
-    }
+var aliveBehavior = function (nbNbrs, nextGrid, x, y) {
+  if(nbNbrs < 2)
+    underPopulationBehavior();
+}
+
+var behavior = function(nbNbrs, nextGrid, x, y) {
+  if(isAlive(x, y)) {
+    aliveBehavior(nbNbrs, nextGrid, x, y);
+  } else {
+
   }
+}
 
-  /*return  mat[x-1][y-1] + mat[x-1][y] + mat[x-1][y+1] + // First row
-          mat[x][y-1] + mat[x][y+1] +
-          mat[x+1][y-1] + mat[x+1][y] + mat[x+1][y+1];*/
-};
+var nextGrid = generateArray(true, []);
+var myApp =  {
+  go: function go(a){
+    for (var i = 0; i < a.length; i++)
+      for (var j = 0; j < a[i].length; j++)
+        behavior(computeNb(a,i,j), nextGrid, i, j);
+    return nextGrid;
+  }
+}
+
+
+function initialize(value) {
+  var entry = [[],[],[]];
+  for(var i = 0; i < 3; i++)
+    for(var j = 0; j < 3; j++)
+      entry[i][j] = value;
+  return entry;
+}
+
+function generateArray(value, entries) {
+    var tab = initialize(!value);
+    for(var entry in entries)
+      tab[entry[0]][entry[1]] = value
+    return tab;
+}
+
+describe('Test array generation', function() {
+  it('Array should match', function() {
+    var entry = generateArray(true, []);
+    assert.equal(entry, [[0,0,0],[0,0,0],[0,0,0]]);
+  });
+
+  it('Array should match', function() {
+    var entry = generateArray(true, [[1,1]]);
+    assert.equal(entry, [[0,0,0],[0,1,0],[0,0,0]]);
+  });
+})
+
+
+describe('Test underpopulation', function() {
+  it('Array should match', function() {
+    var entry = generateArray(true, [[1,1], [2,2]]);
+    var out = generateArray(true, []);
+    assert.equal(myApp.go(entry), out);
+  });
+})
+
+describe('Test survival', function() {
+  it('Array should match', function() {
+    var entry = array(
+      array(0, 0, 0),
+      array(1, 1, 0),
+      array(0, 1, 1)
+    )
+
+    var out = array(
+      array(0, 0, 0),
+      array(0, 1, 0),
+      array(0, 0, 0)
+    )
+    assert.equal(myApp.go(entry), out);
+  });
+})
+describe('Test overcrowding', function() {
+  it('Array should match', function() {
+    var entry = array(
+      array(1, 1, 1),
+      array(1, 1, 1),
+      array(1, 1, 1)
+    )
+
+    var out = array(
+      array(0, 0, 0),
+      array(0, 0, 0),
+      array(0, 0, 0)
+    )
+
+    var myApp;
+    assert.equal(myApp.go(entry), out);
+  });
+})
+describe('Test reproduction', function() {
+  it('Array should match', function() {
+    var entry = array(
+      array(0, 0, 0),
+      array(1, 0, 0),
+      array(0, 1, 1)
+    )
+
+    var out = array(
+      array(0, 0, 0),
+      array(0, 1, 0),
+      array(0, 0, 0)
+    )
+
+    var myApp;
+    assert.equal(myApp.go(entry), out);
+  });
+})
