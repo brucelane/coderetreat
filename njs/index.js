@@ -16,11 +16,11 @@ var computeNb = function(a,x,y, count= 0) {
 }
 
 var isAlive = function(a, x, y) {
-  return a[x][y] == true;
+  return a[x][y] == 1;
 }
 
 var underPopulationBehavior = function() {
-  nextGrid[x][y] = false;
+  nextGrid[x][y] = 0;
 }
 
 var aliveBehavior = function (nbNbrs, nextGrid, x, y) {
@@ -36,7 +36,7 @@ var behavior = function(nbNbrs, nextGrid, x, y) {
   }
 }
 
-var nextGrid = generateArray(true, []);
+var nextGrid = generateArray(0, []);
 var myApp =  {
   go: function go(a){
     for (var i = 0; i < a.length; i++)
@@ -56,7 +56,7 @@ function initialize(value) {
 }
 
 function generateArray(value, entries) {
-    var tab = initialize(!value);
+    var tab = initialize(value);
     for(var entry in entries)
       tab[entry[0]][entry[1]] = value
     return tab;
@@ -64,12 +64,12 @@ function generateArray(value, entries) {
 
 describe('Test array generation', function() {
   it('Array should match', function() {
-    var entry = generateArray(true, []);
+    var entry = generateArray(0, []);
     assert.equal(entry, [[0,0,0],[0,0,0],[0,0,0]]);
   });
 
   it('Array should match', function() {
-    var entry = generateArray(true, [[1,1]]);
+    var entry = generateArray(0, [[1,1]]);
     assert.equal(entry, [[0,0,0],[0,1,0],[0,0,0]]);
   });
 })
@@ -77,8 +77,8 @@ describe('Test array generation', function() {
 
 describe('Test underpopulation', function() {
   it('Array should match', function() {
-    var entry = generateArray(true, [[1,1], [2,2]]);
-    var out = generateArray(true, []);
+    var entry = generateArray(0, [[1,1], [2,2]]);
+    var out = generateArray(0, []);
     assert.equal(myApp.go(entry), out);
   });
 })
